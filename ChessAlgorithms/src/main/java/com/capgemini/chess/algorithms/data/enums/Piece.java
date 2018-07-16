@@ -20,7 +20,7 @@ public enum Piece {
     BLACK_KNIGHT(PieceType.KNIGHT, Color.BLACK),
     BLACK_ROOK(PieceType.ROOK, Color.BLACK),
     BLACK_PAWN(PieceType.PAWN, Color.BLACK);
-
+	
     private final PieceType type;
     private final Color color;
 

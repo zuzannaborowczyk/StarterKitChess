@@ -7,10 +7,11 @@ package com.capgemini.chess.algorithms.data.enums;
  *
  */
 public enum PieceType {
-	KING,
-    QUEEN,
-    BISHOP,
-    KNIGHT,
-    ROOK,
-    PAWN;
+	KING, //krol
+    QUEEN, //krolowa
+    BISHOP, //goniec
+    KNIGHT, //skoczek
+    ROOK, //wieza
+    PAWN; //pionek
 }
+//wykorzystaj go do implementacji pionkow ale nie rozszerzaj go
