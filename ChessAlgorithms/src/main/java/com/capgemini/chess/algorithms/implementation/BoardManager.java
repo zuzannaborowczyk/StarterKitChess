@@ -4,9 +4,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.capgemini.chess.algorithms.data.BishopMovesValidator;
 import com.capgemini.chess.algorithms.data.Coordinate;
+import com.capgemini.chess.algorithms.data.KingMovesValidator;
+import com.capgemini.chess.algorithms.data.KnightMovesValidator;
 import com.capgemini.chess.algorithms.data.Move;
+import com.capgemini.chess.algorithms.data.MoveValidation;
 import com.capgemini.chess.algorithms.data.MoveValidator;
+import com.capgemini.chess.algorithms.data.PawnMovesValidator;
+import com.capgemini.chess.algorithms.data.PieceCoordinate;
+import com.capgemini.chess.algorithms.data.QueenMovesValidator;
+import com.capgemini.chess.algorithms.data.RookMovesValidator;
 import com.capgemini.chess.algorithms.data.enums.BoardState;
 import com.capgemini.chess.algorithms.data.enums.Color;
 import com.capgemini.chess.algorithms.data.enums.MoveType;
@@ -234,67 +242,49 @@ public class BoardManager {
 	}
 
 	private Move validateMove(Coordinate from, Coordinate to) throws InvalidMoveException, KingInCheckException {
-		MoveValidator moveValidator = new MoveValidator();
 		int xFrom = from.getX();
 		int yFrom = from.getY();
 		int xTo = to.getX();
 		int yTo = to.getY();
-		checkBoardRange(xFrom, yFrom, xTo, yTo);
-		
-		List<Coordinate> posibleMoves = new ArrayList<>();
-		if (checkBoardRange(xFrom, yFrom, xTo, yTo)) {
-			if (isCoordinateFromOccupied(from)) {
-				if (IsPieceMine(from)) {
-					switch (returnPieceType(from)) {
-					case ROOK:
-						List<Coordinate> rookPosibleMoves = moveValidator.calculateRookLegalMoves(from);
-						break;
-					case BISHOP:
-						List<Coordinate> bishopPosibleMoves =moveValidator.calculateBishopLegalMoves(from);
-						break;
-					case QUEEN:
-						List<Coordinate> queenPosibleMoves =moveValidator.calculateQueenLegalMoves(from);
-						break;
-					case KING:
-						List<Coordinate> kingPosibleMoves =moveValidator.calculateKingLegalMoves(from);
-						break;
-					case KNIGHT:
-						List<Coordinate> knightPosibleMoves =moveValidator.calculateKnightLegalMoves(from);
-						break;
-					case PAWN:
-						List<Coordinate> pawnPosibleMoves =moveValidator.calculatePawnLegalMoves(from);
-						break;
-					default:
-						break;
-					}
-					if(posibleMoves.contains(to)) {
-						/* isReachable - metoda sprawdzenia pola pomiedzy from a to 
-								w petli przypisywac dane pole do zmiennej (currentField)
-								i wywolac na niej metode podobna do isCoordinateOccupied,
-								 jesli jest dostepne to sprawdzamy czy jest zajete*/
-						if(isCoordinateFromOccupied(to)) /*jezeli ta metoda da false (pole jest puste)
-							 to sprawdzamy iskingincheck 
-							i jesli nie to RETURN MOVE*/
-							/*jezeli ta metoda da true to sprawdzamy czy to figura przeciwnika czy moja(isPieceMine),
-							 * jezeli przeciwnika to sprawdzamy czy iskingincheck i jesli nie to RETURNCAPTURE
-							 */
-						{
-							if(IsPieceMine(to)) { 
-								
-							}
-								throw new InvalidMoveException();
-							
-						}
-					}
-				}
 
-			}
-		
+		MoveValidation posibleMoves = null;
+		checkBoardRange(xFrom, yFrom, xTo, yTo);
+		isCoordinateFromOccupied(from);
+		IsPieceMine(from);
+		// w switchu wg piece filtrowac a nie piecetype
+		switch (returnPieceType(from)) {
+		case ROOK:
+			posibleMoves = new RookMovesValidator(board);
+			break;
+		case BISHOP:
+			posibleMoves = new BishopMovesValidator(board);
+			break;
+		case QUEEN:
+			posibleMoves = new QueenMovesValidator(board);
+			break;
+		case KNIGHT:
+			posibleMoves = new KnightMovesValidator(board);
+			break;
+		case KING:
+			posibleMoves = new KingMovesValidator(board);
+			break;
+		case PAWN:
+			posibleMoves = new PawnMovesValidator(board);
+			break;
+		default:
+			break;
 		}
-		return null;
-	}
-	public boolean isReachable(Coordinate from, Coordinate to) {
-		for (, )
+		posibleMoves.setNextMoveColor(calculateNextMoveColor());
+		posibleMoves.isMovePosible(from, to);
+
+		Move finalMoveValidation = posibleMoves.returnLegalMove(from, to);
+
+		if (isKingInCheck(calculateNextMoveColor())) {
+			throw new KingInCheckException();
+		} else {
+
+			return finalMoveValidation;
+		}
 	}
 
 	public PieceType returnPieceType(Coordinate from) {
@@ -321,26 +311,16 @@ public class BoardManager {
 			return true;
 		}
 		throw new InvalidMoveException();
-	
+
 	}
 
-	public boolean checkBoardRange(int xFrom, int yFrom, int xTo, int yTo) {
-		if (xFrom <= 0 && xFrom >= 7 && yFrom <= 0 && yFrom >= 7 && xTo <= 0 && xTo >= 7 && yTo <= 0 && yTo >= 7) {
+	public boolean checkBoardRange(int xFrom, int yFrom, int xTo, int yTo) throws InvalidMoveException {
+		if (xFrom >= 0 && xFrom <= 7 && yFrom >= 0 && yFrom <= 7 && xTo >= 0 && xTo <= 7 && yTo >= 0 && yTo <= 7) {
 			return true;
 		}
-		throw new IndexOutOfBoundsException();
-		
-		}
+		throw new InvalidMoveException();
 
-		// dostajemy xy, xy koordynaty
-		// ta metoda ma wykonac ruch
-		// poprawnosc wspolrzednych (w odrebnej metodzie)
-		// Czy ruch jest dozwolony
-		// czy to moja figura
-		// ma zwrocic bicie lub zwykly ruch
-		// nie mozna wykonac ruchu, ktory by odslonil krola
-		
-
+	}
 
 	private boolean isKingInCheck(Color kingColor) {
 
@@ -350,10 +330,44 @@ public class BoardManager {
 
 	private boolean isAnyMoveValid(Color nextMoveColor) {
 
-		// czy ruch figury nie spowoduje szacha, np odsloniecie krola
-		// podobne do metody validateMove
+		ArrayList<PieceCoordinate> piecesWithCoordinates = getAllPiecesOfColor(nextMoveColor);
 
+		for (int i = 0; i < piecesWithCoordinates.size(); i++) {
+
+			for (int x = 0; x < Board.SIZE; x++) {
+				for (int y = 0; y < Board.SIZE; y++) {
+					try {
+						validateMove(piecesWithCoordinates.get(i).getPosition(), new Coordinate(x, y));
+						return true;
+					} catch (KingInCheckException e) {
+						continue;
+					} catch (InvalidMoveException e) {
+						continue;
+					}
+				}
+			}
+		}
 		return false;
+	}
+
+	public ArrayList<PieceCoordinate> getAllPiecesOfColor(Color color) {
+		ArrayList<PieceCoordinate> piecesWithCoords = new ArrayList<PieceCoordinate>();
+
+		for (int i = 0; i < Board.SIZE; i++) {
+			for (int j = 0; j < Board.SIZE; j++) {
+				Coordinate currentCoordinate = new Coordinate(i, j);
+				Piece currentPiece = board.getPieceAt(currentCoordinate);
+				if (currentPiece != null && currentPiece.getColor() == color) {
+					piecesWithCoords.add(new PieceCoordinate(currentPiece, currentCoordinate));
+				}
+			}
+		}
+		return piecesWithCoords;
+	}
+
+	public Color getPieceColor() {
+		Color color = calculateNextMoveColor();
+		return color;
 	}
 
 	private Color calculateNextMoveColor() {
