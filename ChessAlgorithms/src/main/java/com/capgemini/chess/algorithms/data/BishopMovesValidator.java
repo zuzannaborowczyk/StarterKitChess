@@ -16,80 +16,86 @@ public class BishopMovesValidator implements MoveValidation {
 
 	@Override
 	public boolean isMovePosible(Coordinate from, Coordinate to) throws InvalidMoveException {
-		// if (Math.abs(xTo - xFrom) == Math.abs(yTo - yFrom)) {
+		 
 		int xFrom = from.getX();
 		int yFrom = from.getY();
 		int xTo = to.getX();
 		int yTo = to.getY();
 		if (xTo > xFrom && yTo > yFrom) {
-			int currentX = xFrom+1;
-			int currentY = yFrom+1;
-			for (int i = xFrom+1; i < xTo; i++) {
+			int currentX = xFrom + 1;
+			int currentY = yFrom + 1;
+			for (int i = xFrom + 1; i < xTo; i++) {
 				currentX = i;
-				for (int j = yFrom+1; j < yTo; j++) {
-
-					currentY = j;
-					Coordinate currentCoordinate = new Coordinate(currentX, currentY);
-					Piece piece = this.board.getPieceAt(currentCoordinate);
-					if (piece != null) {
-
-					}
+				Coordinate currentCoordinate = new Coordinate(currentX, currentY);
+				Piece piece = this.board.getPieceAt(currentCoordinate);
+				if (piece != null && !piece.getColor().equals(nextMoveColor) && xTo== xFrom+1 && yTo == yFrom+1) {
+					return true;
+				}
+				if (piece != null) {
 					throw new InvalidMoveException();
 				}
+				currentY++;
 			}
 
 			return true;
-		} else if (xTo > xFrom && yTo < yFrom) {
-			int currentX = xFrom+1;
-			int currentY = yFrom-1;
-			for (int i = xFrom+1; i < xTo; i++) {
+
+		}
+
+		else if (xTo > xFrom && yTo < yFrom) {
+			int currentX = xFrom + 1;
+			int currentY = yFrom - 1;
+			for (int i = xFrom + 1; i < xTo; i++) {
 				currentX = i;
-				for (int j = yFrom-1; j > yTo; j--) {
 
-					currentY = j;
-					Coordinate currentCoordinate = new Coordinate(currentX, currentY);
-					Piece piece = this.board.getPieceAt(currentCoordinate);
-					if (piece != null) {
-
-					}
+				Coordinate currentCoordinate = new Coordinate(currentX, currentY);
+				Piece piece = this.board.getPieceAt(currentCoordinate);
+				if (piece != null && !piece.getColor().equals(nextMoveColor) && xTo== xFrom+1 && yTo == yFrom-1) {
+					return true;
+				}
+				if (piece != null) {
 					throw new InvalidMoveException();
 				}
-			}
+				currentY--;
 
+			}
 			return true;
+
 		} else if (xTo < xFrom && yTo < yFrom) {
-			int currentX = xFrom-1;
-			int currentY = yFrom-1;
-			for (int i = xFrom-1; i > xTo; i--) {
+			int currentX = xFrom - 1;
+			int currentY = yFrom - 1;
+			for (int i = xFrom - 1; i > xTo; i--) {
 				currentX = i;
-				for (int j = yFrom-1; j > yTo; j--) {
 
-					currentY = j;
-					Coordinate currentCoordinate = new Coordinate(currentX, currentY);
-					Piece piece = this.board.getPieceAt(currentCoordinate);
-					if (piece != null) {
-
-					}
-					throw new InvalidMoveException();
+				Coordinate currentCoordinate = new Coordinate(currentX, currentY);
+				Piece piece = this.board.getPieceAt(currentCoordinate);
+				if (piece != null && !piece.getColor().equals(nextMoveColor) && xTo== xFrom-1 && yTo == yFrom-1) {
+					return true;
 				}
+				if (piece != null) {
+					throw new InvalidMoveException();
+
+				}
+				currentY--;
 			}
 
 			return true;
 		} else if (xTo < xFrom && yTo > yFrom) {
-			int currentX = xFrom-1;
-			int currentY = yFrom+1;
-			for (int i = xFrom-1; i > xTo; i--) {
+			int currentX = xFrom - 1;
+			int currentY = yFrom + 1;
+			for (int i = xFrom - 1; i > xTo; i--) {
 				currentX = i;
-				for (int j = yFrom+1; j < yTo; j++) {
 
-					currentY = j;
-					Coordinate currentCoordinate = new Coordinate(currentX, currentY);
-					Piece piece = this.board.getPieceAt(currentCoordinate);
-					if (piece != null) {
-
-					}
-					throw new InvalidMoveException();
+				Coordinate currentCoordinate = new Coordinate(currentX, currentY);
+				Piece piece = this.board.getPieceAt(currentCoordinate);
+				if (piece != null && !piece.getColor().equals(nextMoveColor) && xTo== xFrom-1 && yTo == yFrom+1) {
+					return true;
 				}
+				if (piece != null) {
+					throw new InvalidMoveException();
+
+				}
+				currentY++;
+
 			}
 
 			return true;
@@ -115,6 +121,7 @@ public class BishopMovesValidator implements MoveValidation {
 		}
 	}
 
+	
 	@Override
 	public void setNextMoveColor(Color nextMoveColor) {
 		this.nextMoveColor = nextMoveColor;

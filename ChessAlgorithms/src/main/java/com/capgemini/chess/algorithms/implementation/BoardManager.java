@@ -10,7 +10,6 @@ import com.capgemini.chess.algorithms.data.KingMovesValidator;
 import com.capgemini.chess.algorithms.data.KnightMovesValidator;
 import com.capgemini.chess.algorithms.data.Move;
 import com.capgemini.chess.algorithms.data.MoveValidation;
-import com.capgemini.chess.algorithms.data.MoveValidator;
 import com.capgemini.chess.algorithms.data.PawnMovesValidator;
 import com.capgemini.chess.algorithms.data.PieceCoordinate;
 import com.capgemini.chess.algorithms.data.QueenMovesValidator;
@@ -33,6 +32,7 @@ import com.capgemini.chess.algorithms.implementation.exceptions.KingInCheckExcep
 public class BoardManager {
 
 	private Board board = new Board();
+	private Piece Piece;
 
 	public BoardManager() {
 		initBoard();
@@ -276,13 +276,20 @@ public class BoardManager {
 		}
 		posibleMoves.setNextMoveColor(calculateNextMoveColor());
 		posibleMoves.isMovePosible(from, to);
-
+		
 		Move finalMoveValidation = posibleMoves.returnLegalMove(from, to);
 
-		if (isKingInCheck(calculateNextMoveColor())) {
-			throw new KingInCheckException();
-		} else {
+		Board boardSymulation = new Board(board);
+		this.board.setPieceAt(board.getPieceAt(from), to);
+		board.setPieceAt(null, from);
 
+		if (isKingInCheck(calculateNextMoveColor())) {
+
+			this.board = boardSymulation;
+			throw new KingInCheckException();
+
+		} else {
+			this.board = boardSymulation;
 			return finalMoveValidation;
 		}
 	}
@@ -304,8 +311,6 @@ public class BoardManager {
 	}
 
 	public boolean isCoordinateFromOccupied(Coordinate from) throws InvalidMoveException {
-		// jak porownac miejsce na planszy z figura (porownac koordynaty from z
-		// koordynatami zajetych figur
 		Piece piece = this.board.getPieceAt(from);
 		if (piece != null) {
 			return true;
@@ -324,20 +329,84 @@ public class BoardManager {
 
 	private boolean isKingInCheck(Color kingColor) {
 
-		// czy jakakolwiek figura ma krola na swojej trasie
+		Coordinate myKingCoordinate = getKingCoordinate(kingColor);
+		if (myKingCoordinate == null) {
+			return false;
+		}
+		List<PieceCoordinate> listOfAllPiecesOfEnemyColor = getAllPiecesOfTheColor(getEnemyColor(kingColor));
+		for (int i = 0; i < listOfAllPiecesOfEnemyColor.size(); i++) {
+			Coordinate potentialAttackerCoordinate = listOfAllPiecesOfEnemyColor.get(i).getPosition();
+			PieceType potentialAttackerPieceType = listOfAllPiecesOfEnemyColor.get(i).getPiece().getType();
+			MoveValidation posibleMoves = null;
+			switch (potentialAttackerPieceType) {
+			case ROOK:
+				posibleMoves = new RookMovesValidator(board);
+				break;
+			case BISHOP:
+				posibleMoves = new BishopMovesValidator(board);
+				break;
+			case QUEEN:
+				posibleMoves = new QueenMovesValidator(board);
+				break;
+			case KNIGHT:
+				posibleMoves = new KnightMovesValidator(board);
+				break;
+			case KING:
+				posibleMoves = new KingMovesValidator(board);
+				break;
+			case PAWN:
+				posibleMoves = new PawnMovesValidator(board);
+				break;
+			default:
+				break;
+			}
+			try {
+				posibleMoves.setNextMoveColor(getEnemyColor(kingColor));
+				if (posibleMoves.isMovePosible(potentialAttackerCoordinate, myKingCoordinate)) {
+					return true;
+				}
+			} catch (InvalidMoveException e) {
+				continue;
+			}
+		}
+
 		return false;
+	}
+
+	public Color getEnemyColor(Color kingColor) {
+		if (kingColor == Color.WHITE) {
+			return Color.BLACK;
+		} else {
+			return Color.WHITE;
+		}
+	}
+
+	public Coordinate getKingCoordinate(Color color) {
+		Coordinate kingCoordinate = null;
+
+		for (int i = 0; i < Board.SIZE; i++) {
+			for (int j = 0; j < Board.SIZE; j++) {
+				Coordinate currentCoordinate = new Coordinate(i, j);
+				Piece currentPiece = board.getPieceAt(currentCoordinate);
+				if (currentPiece != null && currentPiece.getType() == PieceType.KING
+						&& currentPiece.getColor() == color) {
+					kingCoordinate = currentCoordinate;
+				}
+			}
+		}
+		return kingCoordinate;
 	}
 
 	private boolean isAnyMoveValid(Color nextMoveColor) {
 
-		ArrayList<PieceCoordinate> piecesWithCoordinates = getAllPiecesOfColor(nextMoveColor);
+		ArrayList<PieceCoordinate> piecesWithCoordinates = getAllPiecesOfTheColor(nextMoveColor);
 
 		for (int i = 0; i < piecesWithCoordinates.size(); i++) {
 
-			for (int x = 0; x < Board.SIZE; x++) {
-				for (int y = 0; y < Board.SIZE; y++) {
+			for (int w = 0; w < Board.SIZE; w++) {
+				for (int j = 0; j < Board.SIZE; j++) {
 					try {
-						validateMove(piecesWithCoordinates.get(i).getPosition(), new Coordinate(x, y));
+						validateMove(piecesWithCoordinates.get(i).getPosition(), new Coordinate(w, j));
 						return true;
 					} catch (KingInCheckException e) {
 						continue;
@@ -350,19 +419,19 @@ public class BoardManager {
 		return false;
 	}
 
-	public ArrayList<PieceCoordinate> getAllPiecesOfColor(Color color) {
-		ArrayList<PieceCoordinate> piecesWithCoords = new ArrayList<PieceCoordinate>();
+	public ArrayList<PieceCoordinate> getAllPiecesOfTheColor(Color color) {
+		ArrayList<PieceCoordinate> piecesWithItsCoordinates = new ArrayList<PieceCoordinate>();
 
 		for (int i = 0; i < Board.SIZE; i++) {
 			for (int j = 0; j < Board.SIZE; j++) {
 				Coordinate currentCoordinate = new Coordinate(i, j);
 				Piece currentPiece = board.getPieceAt(currentCoordinate);
 				if (currentPiece != null && currentPiece.getColor() == color) {
-					piecesWithCoords.add(new PieceCoordinate(currentPiece, currentCoordinate));
+					piecesWithItsCoordinates.add(new PieceCoordinate(currentPiece, currentCoordinate));
 				}
 			}
 		}
-		return piecesWithCoords;
+		return piecesWithItsCoordinates;
 	}
 
 	public Color getPieceColor() {
