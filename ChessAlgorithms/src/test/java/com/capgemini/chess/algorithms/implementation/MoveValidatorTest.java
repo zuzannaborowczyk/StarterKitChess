@@ -14,13 +14,14 @@ import com.capgemini.chess.algorithms.implementation.exceptions.InvalidMoveExcep
 
 public class MoveValidatorTest {
 
+	
 	@Test
-	public void testUpdateBoardStateCheck() throws InvalidMoveException {
+	public void testUpdateBoardStateCheckWhiteKing() throws InvalidMoveException {
 		// given
 		Board board = new Board();
-		board.getMoveHistory().add(createDummyMove(board));
-		board.setPieceAt(Piece.WHITE_BISHOP, new Coordinate(3, 1));
-		board.setPieceAt(Piece.BLACK_KING, new Coordinate(4, 0));
+		
+		board.setPieceAt(Piece.BLACK_BISHOP, new Coordinate(1, 3));
+		board.setPieceAt(Piece.WHITE_KING, new Coordinate(4, 0));
 		
 		// when
 		BoardManager boardManager = new BoardManager(board);
@@ -29,23 +30,46 @@ public class MoveValidatorTest {
 		// then
 		assertEquals(BoardState.CHECK, boardState);
 	}
+	
+	
+	
+	
+	
 	@Test
-	public void testPerformCaptureByBishop() throws InvalidMoveException {
+	public void shouldBeRegularBoardState() throws InvalidMoveException {
 		// given
 		Board board = new Board();
 		board.getMoveHistory().add(createDummyMove(board));
-		board.setPieceAt(Piece.BLACK_BISHOP, new Coordinate(1, 1));
-		board.setPieceAt(Piece.WHITE_ROOK, new Coordinate(2, 2));
+		board.setPieceAt(Piece.WHITE_BISHOP, new Coordinate(7, 7));
+		board.setPieceAt(Piece.BLACK_KING, new Coordinate(4, 0));
+		
+		// when
+		BoardManager boardManager = new BoardManager(board);
+		BoardState boardState = boardManager.updateBoardState();
+		
+		// then
+		assertEquals(BoardState.REGULAR, boardState);
+	}
+	
+	
+	
+	@Test
+	public void testPerformCaptureByRook() throws InvalidMoveException {
+		// given
+		Board board = new Board();
+		board.getMoveHistory().add(createDummyMove(board));
+		board.setPieceAt(Piece.BLACK_ROOK, new Coordinate(5, 3));
+		board.setPieceAt(Piece.WHITE_PAWN, new Coordinate(5, 2));
 		
 		// when
 		BoardManager boardManager = new BoardManager(board);		
 		
-		Move move = boardManager.performMove(new Coordinate(1, 1), new Coordinate(2, 2));
+		Move move = boardManager.performMove(new Coordinate(5, 3), new Coordinate(5, 2));
 		
 				
 		// then 
 		assertEquals(MoveType.CAPTURE, move.getType());
-		assertEquals(Piece.BLACK_BISHOP, move.getMovedPiece());
+		assertEquals(Piece.BLACK_ROOK, move.getMovedPiece());
 	}
 private Move createDummyMove(Board board) {
 		

@@ -28,6 +28,9 @@ public class RookMovesValidator implements MoveValidation {
 				currentField = i;
 				Coordinate currentCoordinate = new Coordinate(currentField, yFrom);
 				Piece piece = this.board.getPieceAt(currentCoordinate);
+				if (piece != null && !piece.getColor().equals(nextMoveColor) && xTo== xFrom+1 && yTo == yFrom) {
+					return true;
+				}
 				if (piece != null) {
 					throw new InvalidMoveException();
 				}
@@ -39,6 +42,9 @@ public class RookMovesValidator implements MoveValidation {
 				currentField = j;
 				Coordinate currentCoordinate = new Coordinate(xFrom, currentField);
 				Piece piece = this.board.getPieceAt(currentCoordinate);
+				if (piece != null && !piece.getColor().equals(nextMoveColor) && xTo== xFrom && yTo == yFrom+1) {
+					return true;
+				}
 				if (piece != null) {
 					throw new InvalidMoveException();
 				}
@@ -50,6 +56,9 @@ public class RookMovesValidator implements MoveValidation {
 				currentField = j;
 				Coordinate currentCoordinate = new Coordinate(xFrom, currentField);
 				Piece piece = this.board.getPieceAt(currentCoordinate);
+				if (piece != null && !piece.getColor().equals(nextMoveColor) && xTo== xFrom && yTo == yFrom-1) {
+					return true;
+				}
 				if (piece != null) {
 					throw new InvalidMoveException();
 				}
@@ -61,6 +70,9 @@ public class RookMovesValidator implements MoveValidation {
 				currentField = j;
 				Coordinate currentCoordinate = new Coordinate(currentField, yFrom);
 				Piece piece = this.board.getPieceAt(currentCoordinate);
+				if (piece != null && !piece.getColor().equals(nextMoveColor) && xTo== xFrom-1 && yTo == yFrom) {
+					return true;
+				}
 				if (piece != null) {
 					throw new InvalidMoveException();
 				}

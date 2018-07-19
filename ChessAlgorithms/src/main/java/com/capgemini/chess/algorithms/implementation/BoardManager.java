@@ -279,9 +279,11 @@ public class BoardManager {
 		
 		Move finalMoveValidation = posibleMoves.returnLegalMove(from, to);
 
+		
+		
 		Board boardSymulation = new Board(board);
 		this.board.setPieceAt(board.getPieceAt(from), to);
-		board.setPieceAt(null, from);
+		this.board.setPieceAt(null, from);
 
 		if (isKingInCheck(calculateNextMoveColor())) {
 
@@ -368,6 +370,7 @@ public class BoardManager {
 			} catch (InvalidMoveException e) {
 				continue;
 			}
+		
 		}
 
 		return false;
